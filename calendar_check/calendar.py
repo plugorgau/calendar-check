@@ -1,5 +1,5 @@
 import datetime
-import typing
+from typing import List
 
 
 class Event:
@@ -24,5 +24,5 @@ class Event:
 
 class Calendar:
 
-    def events(self, start: datetime.datetime, end: datetime.datetime) -> typing.List[Event]:
+    def events(self, start: datetime.datetime, end: datetime.datetime) -> List[Event]:
         raise NotImplementedError

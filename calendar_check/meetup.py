@@ -1,6 +1,6 @@
 import datetime
 import json
-import typing
+from typing import List
 import urllib.request
 
 from . import calendar
@@ -17,7 +17,7 @@ class MeetupCalendar(calendar.Calendar):
         with urllib.request.urlopen(f'https://api.meetup.com/{self.group}/events') as resp:
             return json.load(resp)
 
-    def events(self, start: datetime.datetime, end: datetime.datetime) -> typing.List[calendar.Event]:
+    def events(self, start: datetime.datetime, end: datetime.datetime) -> List[calendar.Event]:
         tz = start.tzinfo
         events = []
         for event in self._load():

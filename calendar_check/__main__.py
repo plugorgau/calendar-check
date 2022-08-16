@@ -2,10 +2,10 @@ import datetime
 import os
 import pathlib
 import sys
-import typing
+from typing import List
 import zoneinfo
 
-from . import meetup
+from . import google, meetup
 
 
 def localtime() -> zoneinfo.ZoneInfo:
@@ -25,19 +25,23 @@ def localtime() -> zoneinfo.ZoneInfo:
             tzname = fp.read().strip()
     return zoneinfo.ZoneInfo(tzname)
 
-def main(argv: typing.List[str]) -> None:
+def main(argv: List[str]) -> None:
     tz = localtime()
     start = datetime.datetime.now(tz)
     end = start + datetime.timedelta(days=62)
 
-    cal = meetup.MeetupCalendar('perth-linux-users-group-plug')
-    for event in cal.events(start, end):
-        print(event.id)
-        print(event.link)
-        print(event.start)
-        print(event.duration)
-        print(event.summary)
-        print()
+    for name, cal in [
+            ('Google', google.GoogleCalendar('president@plug.org.au')),
+            ('Meetup', meetup.MeetupCalendar('perth-linux-users-group-plug')),
+    ]:
+        print(f'{name}:')
+        for event in cal.events(start, end):
+            print(f'  ID:       {event.id}')
+            print(f'  URL:      {event.link}')
+            print(f'  Start:    {event.start}')
+            print(f'  Duration: {event.duration}')
+            print(f'  Summary:  {event.summary}')
+            print()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
