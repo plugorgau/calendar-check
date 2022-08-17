@@ -1,6 +1,7 @@
 import datetime
 from typing import List
 import urllib.request
+import zoneinfo
 
 import icalendar
 import dateutil.rrule
@@ -39,13 +40,20 @@ class GoogleCalendar(calendar.Calendar):
             dtstart = dtstart.astimezone(tz)
             duration = component.decoded('dtend').astimezone(tz) - dtstart
 
-            rrule = component.get('rrule')
-            if rrule is None:
-                if not (start <= dtstart < end): continue
-                events.append(self._make_event(dtstart, duration, component))
-            else:
-                # Expand component according to recurrence rule
-                for rep in dateutil.rrule.rrulestr(rrule.to_ical().decode('utf-8'), dtstart=dtstart).between(start, end):
+            # Expand component according to recurrence rule
+            if component.has_key('rrule'):
+                rrule = dateutil.rrule.rrulestr('\n'.join(
+                    line for line in component.content_lines()
+                    if (line.startswith('RRULE') or
+                        line.startswith('RDATE') or
+                        line.startswith('EXRULE') or
+                        line.startswith('EXDATE') or
+                        line.startswith('DTSTART'))
+                ), tzids=zoneinfo.ZoneInfo)
+                for rep in rrule.between(start, end):
                     events.append(self._make_event(rep, duration, component))
+            else:
+                if start <= dtstart < end:
+                    events.append(self._make_event(dtstart, duration, component))
         events.sort()
         return events
