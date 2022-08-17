@@ -5,7 +5,7 @@ import sys
 from typing import List
 import zoneinfo
 
-from . import google, meetup
+from . import calendar, google, meetup
 
 
 def localtime() -> zoneinfo.ZoneInfo:
@@ -25,23 +25,35 @@ def localtime() -> zoneinfo.ZoneInfo:
             tzname = fp.read().strip()
     return zoneinfo.ZoneInfo(tzname)
 
+
+def print_event(event: calendar.Event) -> None:
+    print(f'  ID:       {event.id}')
+    print(f'  URL:      {event.link}')
+    print(f'  Start:    {event.start}')
+    print(f'  Duration: {event.duration}')
+    print(f'  Summary:  {event.summary}')
+    print()
+
+
 def main(argv: List[str]) -> None:
     tz = localtime()
     start = datetime.datetime.now(tz)
     end = start + datetime.timedelta(days=62)
 
-    for name, cal in [
-            ('Google', google.GoogleCalendar('president@plug.org.au')),
-            ('Meetup', meetup.MeetupCalendar('perth-linux-users-group-plug')),
-    ]:
-        print(f'{name}:')
-        for event in cal.events(start, end):
-            print(f'  ID:       {event.id}')
-            print(f'  URL:      {event.link}')
-            print(f'  Start:    {event.start}')
-            print(f'  Duration: {event.duration}')
-            print(f'  Summary:  {event.summary}')
-            print()
+    g = google.GoogleCalendar('president@plug.org.au')
+    m = meetup.MeetupCalendar('perth-linux-users-group-plug')
+    for (g_event, m_event) in calendar.match_events(g, m, start, end):
+        if m_event is None:
+            print("Only in Google:")
+            print_event(g_event)
+        elif g_event is None:
+            print("Only in Meetup:")
+            print_event(g_event)
+        else:
+            print("In Google and Meetup:")
+            print_event(g_event)
+            print_event(m_event)
+        print()
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
