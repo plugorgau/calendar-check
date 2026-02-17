@@ -1,37 +1,7 @@
-import datetime
-import json
-from typing import List
-import urllib.request
-
-from . import calendar
+from . import ical
 
 
-class MeetupCalendar(calendar.Calendar):
-
-    group: str
+class MeetupCalendar(ical.ICalendar):
 
     def __init__(self, group: str):
-        self.group = group
-
-    def _load(self):
-        with urllib.request.urlopen(f'https://api.meetup.com/{self.group}/events') as resp:
-            return json.load(resp)
-
-    def events(self, start: datetime.datetime, end: datetime.datetime) -> List[calendar.Event]:
-        tz = start.tzinfo
-        events = []
-        for event in self._load():
-            dtstart = datetime.datetime.fromtimestamp(event['time'] // 1000).astimezone(tz)
-            duration = datetime.timedelta(seconds=event['duration'] // 1000)
-            if dtstart < start or dtstart >= end: continue
-
-            events.append(calendar.Event(
-                id=event['id'],
-                link=event['link'],
-                start=dtstart,
-                duration=duration,
-                summary=event['name'],
-                description=event['description']))
-
-        events.sort()
-        return events
+        super().__init__(f'https://www.meetup.com/{group}/events/ical/')

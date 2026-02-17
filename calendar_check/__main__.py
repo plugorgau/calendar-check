@@ -28,7 +28,8 @@ def localtime() -> zoneinfo.ZoneInfo:
 
 def print_event(event: calendar.Event) -> None:
     print(f'  ID:       {event.id}')
-    print(f'  URL:      {event.link}')
+    if event.link:
+        print(f'  URL:      {event.link}')
     print(f'  Start:    {event.start}')
     print(f'  Duration: {event.duration}')
     print(f'  Summary:  {event.summary}')
@@ -48,7 +49,7 @@ def main(argv: List[str]) -> None:
             print_event(g_event)
         elif g_event is None:
             print("Only in Meetup:")
-            print_event(g_event)
+            print_event(m_event)
         else:
             print("In Google and Meetup:")
             print_event(g_event)
