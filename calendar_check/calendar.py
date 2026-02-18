@@ -51,6 +51,7 @@ def match_events(cal1: Calendar, cal2: Calendar, start: datetime.datetime, end: 
                 # ev2 is before ev1, so can't have a match
                 del cal2_events[0]
                 yield (None, ev2)
+                ev2 = None
             else:
                 # ev2 is after ev1, so may match future event
                 ev2 = None
