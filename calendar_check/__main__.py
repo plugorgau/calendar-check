@@ -5,7 +5,7 @@ import sys
 from typing import List
 import zoneinfo
 
-from . import calendar, google, meetup
+from . import calendar, ical
 
 
 def localtime() -> zoneinfo.ZoneInfo:
@@ -41,8 +41,8 @@ def main(argv: List[str]) -> None:
     start = datetime.datetime.now(tz)
     end = start + datetime.timedelta(days=62)
 
-    g = google.GoogleCalendar('president@plug.org.au')
-    m = meetup.MeetupCalendar('perth-linux-users-group-plug')
+    g = ical.GoogleCalendar('president@plug.org.au')
+    m = ical.MeetupCalendar('perth-linux-users-group-plug')
     for (g_event, m_event) in calendar.match_events(g, m, start, end):
         if m_event is None:
             print("Only in Google:")

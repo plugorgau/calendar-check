@@ -60,3 +60,13 @@ class ICalendar(calendar.Calendar):
         return events
 
 
+class GoogleCalendar(ICalendar):
+
+    def __init__(self, calendar):
+        super().__init__(f'https://calendar.google.com/calendar/ical/{calendar}/public/basic.ics')
+
+
+class MeetupCalendar(ICalendar):
+
+    def __init__(self, group: str):
+        super().__init__(f'https://www.meetup.com/{group}/events/ical/')
