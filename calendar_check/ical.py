@@ -17,7 +17,9 @@ class ICalendar(calendar.Calendar):
         self._url = url
 
     def _load(self) -> icalendar.Calendar:
-        with urllib.request.urlopen(self._url) as resp:
+        req = urllib.request.Request(self._url)
+        req.add_header('User-Agent', 'calendar-check/0')
+        with urllib.request.urlopen(req) as resp:
             return icalendar.Calendar.from_ical(resp.read())
 
     def _make_event(self, dtstart: datetime.datetime, duration: datetime.timedelta, component: icalendar.Component) -> calendar.Event:
@@ -70,3 +72,9 @@ class MeetupCalendar(ICalendar):
 
     def __init__(self, group: str):
         super().__init__(f'https://www.meetup.com/{group}/events/ical/')
+
+
+class LumaCalendar(ICalendar):
+
+    def __init__(self, calendar: str):
+        super().__init__(f'https://api2.luma.com/ics/get?entity=calendar&id={calendar}')
