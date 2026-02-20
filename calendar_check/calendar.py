@@ -38,24 +38,24 @@ class Calendar:
 
 
 def match_events(cal1: Calendar, cal2: Calendar, start: datetime.datetime, end: datetime.datetime) -> Iterator[Tuple[Optional[Event], Optional[Event]]]:
-    cal2_events = cal2.events(start, end)
-    for ev1 in cal1.events(start, end):
-        ev2 = None
-        while len(cal2_events) > 0:
-            ev2 = cal2_events[0]
+    cal1_events = cal1.events(start, end)
+    for ev2 in cal2.events(start, end):
+        ev1 = None
+        while len(cal1_events) > 0:
+            ev1 = cal1_events[0]
             if ev1.overlaps(ev2):
                 # ev2 matches ev1
-                del cal2_events[0]
+                del cal1_events[0]
                 break
-            elif ev2 < ev1:
-                # ev2 is before ev1, so can't have a match
-                del cal2_events[0]
-                yield (None, ev2)
-                ev2 = None
+            elif ev1 < ev2:
+                # ev1 is before ev2, so can't have a match
+                del cal1_events[0]
+                yield (ev1, None)
+                ev1 = None
             else:
-                # ev2 is after ev1, so may match future event
-                ev2 = None
+                # ev1 is after ev2, so may match future event
+                ev1 = None
                 break
         yield (ev1, ev2)
-    for ev2 in cal2_events:
-        yield (None, ev2)
+    for ev1 in cal1_events:
+        yield (ev1, None)
