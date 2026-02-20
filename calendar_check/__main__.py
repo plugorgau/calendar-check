@@ -33,7 +33,6 @@ def print_event(event: calendar.Event) -> None:
     print(f'  Start:    {event.start}')
     print(f'  Duration: {event.duration}')
     print(f'  Summary:  {event.summary}')
-    print()
 
 
 def main(argv: List[str]) -> None:
@@ -43,17 +42,18 @@ def main(argv: List[str]) -> None:
 
     g = ical.GoogleCalendar('president@plug.org.au')
     m = ical.MeetupCalendar('perth-linux-users-group-plug')
-    for (g_event, m_event) in calendar.match_events(g, m, start, end):
-        if m_event is None:
-            print("Only in Google:")
+    l = ical.LumaCalendar('cal-f66nRr2rNhqzUXD')
+    for (g_event, m_event, l_event) in calendar.match_events([g, m, l], start, end):
+        if g_event is not None:
+            print('Google:')
             print_event(g_event)
-        elif g_event is None:
-            print("Only in Meetup:")
+        if m_event is not None:
+            print('Meetup:')
             print_event(m_event)
-        else:
-            print("In Google and Meetup:")
-            print_event(g_event)
-            print_event(m_event)
+        if l_event is not None:
+            print('Luma:')
+            print_event(l_event)
+        print('---')
         print()
 
 if __name__ == '__main__':

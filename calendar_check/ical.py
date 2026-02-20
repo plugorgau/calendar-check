@@ -25,12 +25,15 @@ class ICalendar(calendar.Calendar):
     def _make_event(self, dtstart: datetime.datetime, duration: datetime.timedelta, component: icalendar.Component) -> calendar.Event:
         return calendar.Event(
             id=component.get('uid'),
-            link=component.get('url', ''),
+            link=self._event_url(component),
             start=dtstart,
             duration=duration,
             summary=component.get('summary'),
             description=component.get('description'),
         )
+
+    def _event_url(self, component: icalendar.Component) -> str:
+        return component.get('url', '')
 
     def events(self, start: datetime.datetime, end: datetime.datetime) -> List[calendar.Event]:
         tz = start.tzinfo
@@ -78,3 +81,7 @@ class LumaCalendar(ICalendar):
 
     def __init__(self, calendar: str):
         super().__init__(f'https://api2.luma.com/ics/get?entity=calendar&id={calendar}')
+
+    def _event_url(self, component: icalendar.Component) -> str:
+        event_id = component.get('uid').split('@')[0]
+        return f'https://luma.com/event/{event_id}'
