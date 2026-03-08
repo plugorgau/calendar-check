@@ -84,6 +84,12 @@ class GoogleCalendar(ICalendar):
             # It looks like we might be able to split the uid on '_',
             # and replace the second component with ISO datetime in
             # UTC of the start time.
+            #
+            # For example, take a recurring event with an ID like:
+            #   nfg3rnmh9enns29dhm29ponm2d_R20250608T040000@google.com
+            # For a recurrence on 8 March 2026, the ID for that recurrence
+            # is:
+            #   nfg3rnmh9enns29dhm29ponm2d_20260308T040000Z
             return ''
         uid = component.get('uid')
         assert uid.endswith('@google.com')
