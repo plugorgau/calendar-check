@@ -95,7 +95,7 @@ class GoogleCalendar(ICalendar):
         assert uid.endswith('@google.com')
         uid = uid[:-len('@google.com')]
         eid = base64.b64encode(f'{uid} {self.calendar}'.encode('ASCII')).decode('ASCII').rstrip('=')
-        return f'https://calendar.google.com/calendar/u/0/event?eid={eid}'
+        return f'https://calendar.google.com/calendar/event?eid={eid}'
 
 
 class MeetupCalendar(ICalendar):
