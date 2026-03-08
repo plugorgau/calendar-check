@@ -7,6 +7,8 @@ import pathlib
 import sys
 import zoneinfo
 
+import jinja2
+
 from calendar_check import calendar, ical
 
 
@@ -28,26 +30,76 @@ def localtime() -> zoneinfo.ZoneInfo:
     return zoneinfo.ZoneInfo(tzname)
 
 
-def get_event_info(start: datetime.datetime, end: datetime.datetime) -> str:
+class MergedEvent:
+    summary: str
+    start: datetime.datetime
+    duration: datetime.timedelta
+    google: calendar.Event | None
+    meetup: calendar.Event | None
+    luma: calendar.Event | None
+
+    def __init__(self, g_event: calendar.Event | None,
+                 m_event: calendar.Event | None,
+                 l_event: calendar.Event | None) -> None:
+        ev = next(ev for ev in (g_event, m_event, l_event) if ev is not None)
+        self.summary = ev.summary
+        self.start = ev.start
+        self.duration = ev.duration
+        self.google = g_event
+        self.meetup = m_event
+        self.luma = l_event
+
+
+def get_event_info(start: datetime.datetime, end: datetime.datetime) -> list[MergedEvent]:
     g = ical.GoogleCalendar('president@plug.org.au')
     m = ical.MeetupCalendar('perth-linux-users-group-plug')
     l = ical.LumaCalendar('cal-f66nRr2rNhqzUXD')
-    events = []
-    for (g_event, m_event, l_event) in calendar.match_events([g, m, l], start, end):
-        # Take details from the first non-None event
-        ev = next(ev for ev in (g_event, m_event, l_event) if ev is not None)
-        output = f'{ev.summary}\n'
-        start = ev.start.strftime('%d %B %Y, %I:%M %P')
-        duration = f'{round(ev.duration.total_seconds() / 3600)} hours'
-        output += f'    {start} ({duration})\n'
-        if g_event and g_event.link:
-            output += f'    Google: {g_event.link}\n'
-        if m_event and m_event.link:
-            output += f'    Meetup: {m_event.link}\n'
-        if l_event and l_event.link:
-            output += f'    Luma:   {l_event.link}\n'
-        events.append(output)
-    return '\n'.join(events)
+    return [
+        MergedEvent(g_event, m_event, l_event)
+        for (g_event, m_event, l_event) in calendar.match_events([g, m, l], start, end)
+    ]
+
+
+text_template = jinja2.Environment(autoescape=False).from_string('''\
+This is an automated email reminder of upcoming PLUG events
+
+{% for ev in events -%}
+{{ ev.start.strftime('%d %B %Y') }} - {{ ev.summary }}
+{%- if ev.google and ev.google.link %}
+    Google: {{ ev.google.link }}
+{%- endif %}
+{%- if ev.meetup and ev.meetup.link %}
+    Meetup: {{ ev.meetup.link }}
+{%- endif %}
+{%- if ev.luma and ev.luma.link %}
+    Luma: {{ ev.luma.link }}
+{%- endif %}
+
+{% endfor %}
+''')
+
+html_template = jinja2.Environment(autoescape=True).from_string('''\
+<html>
+<body>
+<p>This is an automated email reminder of upcoming PLUG events</p>
+<ul>
+{% for ev in events %}
+<li>{{ ev.start.strftime('%d %B %Y') }} - {{ ev.summary }}
+{%- if ev.google and ev.google.link %}
+<a href="{{ ev.google.link }}">(Google)</a>
+{%- endif %}
+{%- if ev.meetup and ev.meetup.link %}
+<a href="{{ ev.meetup.link }}">(Meetup)</a>
+{%- endif %}
+{%- if ev.luma and ev.luma.link %}
+<a href="{{ ev.luma.link }}">(Luma)</a>
+{%- endif %}
+</li>
+{%- endfor %}
+</ul>
+</body>
+</html>
+''')
 
 
 def main(argv: list[str]) -> None:
@@ -60,12 +112,13 @@ def main(argv: list[str]) -> None:
         return
 
     msg = email.message.EmailMessage()
-    msg.set_content(events)
+    msg.set_content(text_template.render(events=events))
+    msg.add_alternative(html_template.render(events=events), subtype='html')
     msg['Subject'] = 'PLUG Upcoming Events'
-    msg['From'] = 'events-bot@plug.org.au'
+    msg['From'] = 'PLUG Committee <committee@plug.org.au>'
     msg['To'] = 'plug@plug.org.au'
     msg['Reply-To'] = 'plug@plug.org.au'
-    print(msg)
+    sys.stdout.write(str(msg))
 
 
 if __name__ == '__main__':
