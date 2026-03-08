@@ -1,3 +1,4 @@
+import base64
 import datetime
 from typing import List
 import urllib.request
@@ -67,8 +68,28 @@ class ICalendar(calendar.Calendar):
 
 class GoogleCalendar(ICalendar):
 
+    calendar: str
+
     def __init__(self, calendar):
         super().__init__(f'https://calendar.google.com/calendar/ical/{calendar}/public/basic.ics')
+        self.calendar = calendar
+
+    def _event_url(self, component: icalendar.Component) -> str:
+        if component.has_key('rrule'):
+            # Punt on recurring events. On the iCalendar side, there
+            # is a single uid for the recurring event. On the web
+            # site, there is a different eid for each occurence of the
+            # event.
+            #
+            # It looks like we might be able to split the uid on '_',
+            # and replace the second component with ISO datetime in
+            # UTC of the start time.
+            return ''
+        uid = component.get('uid')
+        assert uid.endswith('@google.com')
+        uid = uid[:-len('@google.com')]
+        eid = base64.b64encode(f'{uid} {self.calendar}'.encode('ASCII')).decode('ASCII').rstrip('=')
+        return f'https://calendar.google.com/calendar/u/0/event?eid={eid}'
 
 
 class MeetupCalendar(ICalendar):
