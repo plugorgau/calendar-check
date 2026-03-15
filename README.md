@@ -13,6 +13,7 @@ match events from each calendar.
 
 ## Dependencies
 
+### Ubuntu/Debian
 The script is written in Python. On a recent Ubuntu or Debian system,
 the following command should ensure the required dependencies are
 available:
@@ -20,6 +21,21 @@ available:
 ```sh
 sudo apt install python3 python3-dateutil python3-icalendar
 ```
+### NixOS
+For nixOS (25.11), ensure the following is in your configuration.nix:
+
+```nix
+{
+environment.systemPackages = with pkgs; [
+(python3.withPackages (python-pkgs: with python-pkgs; [
+      dateutils
+      icalendar
+  ]))
+];
+}
+```
+The script should run with the below invocation from the project folder.
+
 
 ## Invocation
 
