@@ -129,6 +129,8 @@ def main(argv: list[str]) -> None:
     msg = email.message.EmailMessage()
     msg.set_content(text_template.render(events=events))
     msg.add_alternative(html_template.render(events=events), subtype='html')
+    msg['Message-ID'] = email.utils.make_msgid(domain='plug.org.au')
+    msg['Date'] = email.utils.formatdate()
     msg['Subject'] = 'PLUG Upcoming Events'
     msg['From'] = 'PLUG Committee <committee@plug.org.au>'
     msg['To'] = 'plug@plug.org.au'
