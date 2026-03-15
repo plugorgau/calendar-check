@@ -4,6 +4,7 @@ import datetime
 import email.message
 import os
 import pathlib
+import smtplib
 import sys
 import zoneinfo
 
@@ -49,6 +50,12 @@ class MergedEvent:
         self.meetup = m_event
         self.luma = l_event
 
+    @property
+    def has_link(self) -> bool:
+        return (self.google and self.google.link or
+                self.meetup and self.meetup.link or
+                self.luma and self.luma.link)
+
 
 def get_event_info(start: datetime.datetime, end: datetime.datetime) -> list[MergedEvent]:
     g = ical.GoogleCalendar('president@plug.org.au')
@@ -61,18 +68,19 @@ def get_event_info(start: datetime.datetime, end: datetime.datetime) -> list[Mer
 
 
 text_template = jinja2.Environment(autoescape=False).from_string('''\
-This is an automated email reminder of upcoming PLUG events
+This is an automated email reminder of upcoming PLUG events. Full
+details can be found in the PLUG calendar or Meetup.
 
 {% for ev in events -%}
 {{ ev.start.strftime('%d %B %Y') }} - {{ ev.summary }}
 {%- if ev.google and ev.google.link %}
-    Google: {{ ev.google.link }}
+    Cal:    {{ ev.google.link }}
 {%- endif %}
 {%- if ev.meetup and ev.meetup.link %}
     Meetup: {{ ev.meetup.link }}
 {%- endif %}
 {%- if ev.luma and ev.luma.link %}
-    Luma: {{ ev.luma.link }}
+    Luma:   {{ ev.luma.link }}
 {%- endif %}
 
 {% endfor %}
@@ -81,18 +89,25 @@ This is an automated email reminder of upcoming PLUG events
 html_template = jinja2.Environment(autoescape=True).from_string('''\
 <html>
 <body>
-<p>This is an automated email reminder of upcoming PLUG events</p>
+<p>This is an automated email reminder of upcoming PLUG events. Full
+details can be found in the PLUG calendar or Meetup.</p>
 <ul>
+
 {% for ev in events %}
 <li>{{ ev.start.strftime('%d %B %Y') }} - {{ ev.summary }}
+{%- if ev.has_link %}
+
+[
 {%- if ev.google and ev.google.link %}
-<a href="{{ ev.google.link }}">(Google)</a>
+<a href="{{ ev.google.link }}">Calendar</a>
 {%- endif %}
 {%- if ev.meetup and ev.meetup.link %}
-<a href="{{ ev.meetup.link }}">(Meetup)</a>
+<a href="{{ ev.meetup.link }}">Meetup</a>
 {%- endif %}
 {%- if ev.luma and ev.luma.link %}
-<a href="{{ ev.luma.link }}">(Luma)</a>
+<a href="{{ ev.luma.link }}">Luma</a>
+{%- endif %}
+]
 {%- endif %}
 </li>
 {%- endfor %}
@@ -118,7 +133,10 @@ def main(argv: list[str]) -> None:
     msg['From'] = 'PLUG Committee <committee@plug.org.au>'
     msg['To'] = 'plug@plug.org.au'
     msg['Reply-To'] = 'plug@plug.org.au'
-    sys.stdout.write(str(msg))
+
+    smtp = smtplib.SMTP('localhost')
+    smtp.send_message(msg)
+    smtp.quit()
 
 
 if __name__ == '__main__':
