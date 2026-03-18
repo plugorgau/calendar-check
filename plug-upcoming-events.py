@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import argparse
 import datetime
 import email.message
 import os
@@ -118,9 +119,19 @@ details can be found in the PLUG calendar or Meetup.</p>
 
 
 def main(argv: list[str]) -> None:
+    parser = argparse.ArgumentParser(
+        description='Create a "PLUG Upcoming Events" email')
+    parser.add_argument(
+        '-n', '--dry-run', action='store_true',
+        help="don't actually send the email")
+    parser.add_argument(
+        '--days', type=int, default=31,
+        help="how many days of events to include")
+    args = parser.parse_args(argv[1:])
+
     tz = localtime()
     start = datetime.datetime.now(tz)
-    end = start + datetime.timedelta(days=31)
+    end = start + datetime.timedelta(days=args.days)
 
     events = get_event_info(start, end)
     if not events:
@@ -135,6 +146,10 @@ def main(argv: list[str]) -> None:
     msg['From'] = 'PLUG Committee <committee@plug.org.au>'
     msg['To'] = 'plug@plug.org.au'
     msg['Reply-To'] = 'plug@plug.org.au'
+
+    if args.dry_run:
+        sys.stdout.write(str(msg))
+        return
 
     smtp = smtplib.SMTP('localhost')
     smtp.send_message(msg)
