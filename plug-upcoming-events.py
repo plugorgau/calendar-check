@@ -144,8 +144,8 @@ def main(argv: list[str]) -> None:
     msg['Date'] = email.utils.formatdate()
     msg['Subject'] = 'PLUG Upcoming Events'
     msg['From'] = 'PLUG Committee <committee@plug.org.au>'
-    msg['To'] = 'plug@plug.org.au'
-    msg['Reply-To'] = 'plug@plug.org.au'
+    msg['To'] = 'PLUG List <plug@plug.org.au>'
+    msg['Mail-Followup-To'] = 'PLUG List <plug@plug.org.au>'
 
     if args.dry_run:
         sys.stdout.write(str(msg))
