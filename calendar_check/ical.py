@@ -76,22 +76,24 @@ class GoogleCalendar(ICalendar):
         self.calendar = calendar
 
     def _event_url(self, component: icalendar.Component) -> str:
-        if component.has_key('rrule'):
-            # Punt on recurring events. On the iCalendar side, there
-            # is a single uid for the recurring event. On the web
-            # site, there is a different eid for each occurence of the
-            # event.
-            #
-            # It looks like we might be able to split the uid on '_',
-            # and replace the second component with ISO datetime in
-            # UTC of the start time.
-            #
-            # For example, take a recurring event with an ID like:
-            #   nfg3rnmh9enns29dhm29ponm2d_R20250608T040000@google.com
-            # For a recurrence on 8 March 2026, the ID for that recurrence
-            # is:
-            #   nfg3rnmh9enns29dhm29ponm2d_20260308T040000Z
-            return ''
+        # Punt on recurring events. On the iCalendar side, there
+        # is a single uid for the recurring event. On the web
+        # site, there is a different eid for each occurence of the
+        # event.
+        #
+        # It looks like we might be able to split the uid on '_',
+        # and replace the second component with ISO datetime in
+        # UTC of the start time.
+        #
+        # For example, take a recurring event with an ID like:
+        #   nfg3rnmh9enns29dhm29ponm2d_R20250608T040000@google.com
+        # For a recurrence on 8 March 2026, the ID for that recurrence
+        # is:
+        #   nfg3rnmh9enns29dhm29ponm2d_20260308T040000Z
+        #
+        # Unfortunately the eid for the recurrence does not work when
+        # the user is not logged in, so just link to the first
+        # recurrence.
         uid = component.get('uid')
         assert uid.endswith('@google.com')
         uid = uid[:-len('@google.com')]
