@@ -152,7 +152,7 @@ def main(argv: list[str]) -> None:
     msg.set_content(text_template.render(events=events))
     msg.add_alternative(html_template.render(events=events), subtype='html')
     msg['Message-ID'] = email.utils.make_msgid(domain='plug.org.au')
-    msg['Date'] = email.utils.formatdate()
+    msg['Date'] = email.utils.formatdate(localtime=True)
     msg['Subject'] = 'PLUG Upcoming Events'
     msg['From'] = 'PLUG Committee <committee@plug.org.au>'
     msg['To'] = 'PLUG List <plug@plug.org.au>'
