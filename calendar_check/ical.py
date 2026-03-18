@@ -31,6 +31,7 @@ class ICalendar(calendar.Calendar):
             duration=duration,
             summary=component.get('summary'),
             description=component.get('description'),
+            location=component.get('location'),
         )
 
     def _event_url(self, component: icalendar.Component) -> str:

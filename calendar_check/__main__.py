@@ -33,6 +33,8 @@ def print_event(event: calendar.Event) -> None:
     print(f'  Start:    {event.start}')
     print(f'  Duration: {event.duration}')
     print(f'  Summary:  {event.summary}')
+    if event.location:
+        print(f'  Location: {event.location}')
 
 
 def main(argv: List[str]) -> None:

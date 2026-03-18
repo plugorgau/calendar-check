@@ -9,14 +9,16 @@ class Event:
     duration: datetime.timedelta
     summary: str
     description: str
+    location: str
 
-    def __init__(self, id, link, start, duration, summary, description):
+    def __init__(self, id, link, start, duration, summary, description, location):
         self.id = id
         self.link = link
         self.start = start
         self.duration = duration
         self.summary = summary
         self.description = description
+        self.location = location
 
     def __lt__(self, other: 'Event') -> bool:
         return self.start < other.start or (self.start == other.start and self.duration < other.duration)
