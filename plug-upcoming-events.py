@@ -36,6 +36,7 @@ class MergedEvent:
     summary: str
     start: datetime.datetime
     duration: datetime.timedelta
+    location: str
     google: calendar.Event | None
     meetup: calendar.Event | None
     luma: calendar.Event | None
@@ -47,6 +48,7 @@ class MergedEvent:
         self.summary = ev.summary
         self.start = ev.start
         self.duration = ev.duration
+        self.location = ev.location
         self.google = g_event
         self.meetup = m_event
         self.luma = l_event
@@ -73,15 +75,19 @@ This is an automated email reminder of upcoming PLUG events. Full
 details can be found in the PLUG calendar or Meetup.
 
 {% for ev in events -%}
-{{ ev.start.strftime('%d %B %Y') }} - {{ ev.summary }}
+{{ ev.start.strftime('%a %d %B %Y') }} - {{ ev.summary }}
+    Time:     {{ ev.start.strftime('%H:%M') }} - {{ (ev.start + ev.duration).strftime('%H:%M') }}
+{%- if ev.location %}
+    Location: {{ ev.location }}
+{%- endif %}
 {%- if ev.google and ev.google.link %}
-    Cal:    {{ ev.google.link }}
+    Calendar: {{ ev.google.link }}
 {%- endif %}
 {%- if ev.meetup and ev.meetup.link %}
-    Meetup: {{ ev.meetup.link }}
+    Meetup:   {{ ev.meetup.link }}
 {%- endif %}
 {%- if ev.luma and ev.luma.link %}
-    Luma:   {{ ev.luma.link }}
+    Luma:     {{ ev.luma.link }}
 {%- endif %}
 
 {% endfor %}
@@ -95,7 +101,7 @@ details can be found in the PLUG calendar or Meetup.</p>
 <ul>
 
 {% for ev in events %}
-<li>{{ ev.start.strftime('%d %B %Y') }} - {{ ev.summary }}
+<li><div>{{ ev.start.strftime('%a %d %B %Y') }} - {{ ev.summary }}
 {%- if ev.has_link %}
 
 [
@@ -109,6 +115,11 @@ details can be found in the PLUG calendar or Meetup.</p>
 <a href="{{ ev.luma.link }}">Luma</a>
 {%- endif %}
 ]
+{%- endif %}
+</div>
+<div>Time: {{ ev.start.strftime('%H:%M') }} - {{ (ev.start + ev.duration).strftime('%H:%M') }}</div>
+{%- if ev.location %}
+<div>Location: {{ ev.location }}</div>
 {%- endif %}
 </li>
 {%- endfor %}
